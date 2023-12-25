@@ -1,0 +1,121 @@
+basePath: /
+definitions:
+  main.CreateTodoReq:
+    properties:
+      status:
+        example: true
+        type: boolean
+      title:
+        example: tile
+        type: string
+    type: object
+  main.TodoList:
+    properties:
+      id:
+        example: 1
+        type: integer
+      status:
+        example: true
+        type: boolean
+      title:
+        example: tile
+        type: string
+    type: object
+host: localhost:1323
+info:
+  contact:
+    email: sitthisak.dev@gmail.com.com
+    name: API Support
+    url: https://www.support.comsithiask.com
+  description: This is a sample server Todo App server.
+  title: Todo App
+  version: "1.0"
+paths:
+  /todo:
+    get:
+      description: Get all Todo.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.TodoList'
+            type: array
+      summary: Get all Todo
+      tags:
+      - Todo
+    post:
+      description: Create Todo.
+      parameters:
+      - description: Request payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateTodoReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: Create Todo
+      tags:
+      - Todo
+  /todo/{id}:
+    delete:
+      description: Delete Todo by ID.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "201":
+          description: Created
+      summary: Delete Todo by ID
+      tags:
+      - Todo
+    get:
+      description: Get Todo by ID.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.TodoList'
+      summary: Get Todo by ID
+      tags:
+      - Todo
+    put:
+      description: Update Todo by ID.
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Request payload
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateTodoReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+      summary: Update Todo by ID
+      tags:
+      - Todo
+swagger: "2.0"

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<style>
+    body {
+        background: linear-gradient(to right, #3b5b9b, #b643ac);
+    }
+
+    .box {
+        width: 100%;
+        max-width: 700px;
+        padding: 30px;
+        margin: auto;
+        margin-top: 70px;
+        border-radius: 10px;
+        background-color: white;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .boxTodo {
+        border: 0;
+        background-color: #3b5b9b17;
+        border-radius: 50px;
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        padding: 5px;
+        padding-left: 10px;
+    }
+
+    .boxTodoDone {
+        background-color: #5ab64317;
+    }
+
+    .btn {
+        border-radius: 50px;
+        background-color: white;
+    }
+    .btn:hover {
+        background-color: #fa00002f;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+        text-decoration: line-through;
+    }
+
+    form {
+        position: relative;
+        margin-top: 30px;
+        background: #fff;
+        padding: 6px 10px;
+        border-radius: 50px;
+        box-shadow: 0px 2px 15px #00000025;
+    }
+
+    input[type=text] {
+        border: 0;
+        width: calc(100% - 100px);
+    }
+
+    input[type=submit] {
+        width: 100px;
+        background: #3b5b9b;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        border: 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        border-radius: 50px;
+        box-shadow: 0px 2px 15px #00000025;
+        transition: 0.3s;
+    }
+    input[type=submit]:hover {
+        background: #b643ac;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="box">
+            <h3 class="text-center fw-bold">My Todo App</h3>
+            <div class="mt-4">
+                <form onsubmit="CreateTodo()">
+                    <input id="input-todo" type="text" class="form-control" placeholder="Add Your Todo List">
+                    <input type="submit" value="Add">
+                </form>
+            </div>
+            <div class="mt-3 ">
+                <div id="todo-container"></div>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    const inputTodo = document.getElementById("input-todo");
+    const todoContainer = document.getElementById("todo-container");
+
+    function CreateBoxTodo(ID, Title, Status) {
+        var strCheck = "";
+        var strAlert = "";
+        if (Status) { strCheck = "checked"; strAlert = "boxTodoDone" }
+
+        let todoList = document.createElement("div");
+        todoList.className = "boxTodo " + strAlert;
+        todoList.id = ID;
+        todoList.innerHTML = `
+                        <div class="pt-2">
+                            <input onClick="UpdateStatus(`+ todoList.id + `)" id="check-` + todoList.id + `" class="form-check-input mx-2" type="checkbox"` + strCheck + `>
+                            <span id="title-`+ todoList.id + `">` + Title + `</span>
+                        </div>
+                        <div class="">
+                            <button onClick="UpdateTitle(`+ todoList.id + `)" type="button" class="btn"><i class="bi bi-pencil-square"></i></button>
+                            <button onClick="DeleteTodo(`+ todoList.id + `)" type="button" class="btn"><i class="bi bi-file-earmark-x"></i></button>
+                        </div>
+                    `;
+        todoContainer.appendChild(todoList);
+        inputTodo.value = "";
+    }
+
+    // API ----> POST
+    function CreateTodo() {
+        if (inputTodo.value === "") {
+            alert("You must write Todo List!");
+        } else {
+            (async () => {
+                const rawResponse = await fetch('/todo', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title: inputTodo.value, status: false })
+                });
+                
+                GetTodo()
+            })();
+        }
+    }
+
+    // API ----> GET *All
+    function GetTodo() {
+        todoContainer.innerHTML = "";
+        (async () => {
+            const rawResponse = await fetch('/todo', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            });
+            const content = await rawResponse.json();
+            
+            if (content != null) {
+                for (var i = 0; i < content.length; i++) {
+                    CreateBoxTodo(content[i].id, content[i].title, content[i].status);
+                }
+            }
+        })();
+    }
+
+    // API ----> DELETE
+    function DeleteTodo(id) {
+        (async () => {
+            const rawResponse = await fetch('/todo/' + id, {
+                method: 'DELETE'
+            });
+
+            document.getElementById(id).remove();
+            GetTodo()
+        })();
+    }
+
+    // API ----> PUT *List
+    function UpdateTitle(id) {
+        var tileID = document.getElementById("title-" + id);
+
+        let newTitle = prompt("Update Title", tileID.textContent);
+        if (newTitle == null || newTitle == "") alert("you must write something!");
+        else {
+            (async () => {
+                const rawResponse = await fetch('/todo/' + id, {
+                    method: 'PUT',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title: newTitle, status: document.getElementById("check-" + id).checked })
+                });
+
+                tileID.innerHTML = newTitle;
+                GetTodo()
+            })();
+        }
+    }
+
+    // API ----> PUT *Check
+    function UpdateStatus(id) {
+        var UpdateStatus = document.getElementById(id);
+        var strTitle = document.getElementById("title-" + id).textContent;
+
+        (async () => {
+            const rawResponse = await fetch('/todo/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title: strTitle, status: document.getElementById("check-" + id).checked })
+            });
+
+            UpdateStatus.classList.toggle('boxTodoDone');
+            GetTodo()
+        })();
+    }
+
+    window.addEventListener("load", GetTodo);
+
+</script>
