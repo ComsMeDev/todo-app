@@ -5,12 +5,11 @@
         "title": "Todo App",
         "contact": {
             "name": "API Support",
-            "url": "https://www.support.comsithiask.com",
-            "email": "sitthisak.dev@gmail.com.com"
+            "url": "https://www.support.9lek.com",
+            "email": "contact@9lek.com."
         },
         "version": "1.0"
     },
-    "host": "localhost:1323",
     "basePath": "/",
     "paths": {
         "/todo": {

@@ -11,8 +11,8 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "API Support",
-            "url": "https://www.support.comsithiask.com",
-            "email": "sitthisak.dev@gmail.com.com"
+            "url": "https://www.support.9lek.com",
+            "email": "contact@9lek.com."
         },
         "version": "{{.Version}}"
     },
@@ -189,7 +189,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:1323",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Todo App",

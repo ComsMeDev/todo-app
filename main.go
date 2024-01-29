@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	_ "todo-app/docs"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/spf13/viper"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,6 +17,13 @@ import (
 
 type Controller struct {
 	MysqlDB *gorm.DB
+}
+
+type Env struct {
+	DBHost     string `mapstructure:"DB_HOST"`
+	DBUsername string `mapstructure:"DB_USERNAME"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBName     string `mapstructure:"DB_NAME"`
 }
 
 type TodoList struct {
@@ -29,8 +37,8 @@ type CreateTodoReq struct {
 	Status bool   `json:"status" example:"true"`
 }
 
-func NewMysqlDB() *gorm.DB {
-	dsn := "root:@tcp(127.0.0.1:3306)/todoapp?charset=utf8mb4&parseTime=True&loc=Local"
+func NewMysqlDB(env *Env) *gorm.DB {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", env.DBUsername, env.DBPassword, env.DBHost, env.DBName)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err.Error())
@@ -39,26 +47,45 @@ func NewMysqlDB() *gorm.DB {
 	return db
 }
 
+func NewEnv() *Env {
+	env := Env{}
+	viper.SetConfigFile(".env")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatal("Can't find the file .env : ", err)
+		panic(err.Error())
+	}
+
+	err = viper.Unmarshal(&env)
+	if err != nil {
+		log.Fatal("Environment can't be loaded: ", err)
+		panic(err.Error())
+	}
+
+	return &env
+}
+
 //	@title			Todo App
 //	@version		1.0
 //	@description	This is a sample server Todo App server.
 
-//	@contact.name	API Support
-//	@contact.url	https://www.support.comsithiask.com
-//	@contact.email	sitthisak.dev@gmail.com.com
-
-//	@host		localhost:1323
-//	@BasePath	/
+// @contact.name	API Support
+// @contact.url	https://www.support.9lek.com
+// @contact.email	contact@9lek.com.
+// @BasePath		/
 func main() {
-	authValidator := func(username string, password string, c echo.Context) (bool, error) {
-		if username == "admin" && password == "1234" {
-			return true, nil
-		}
-		return false, nil
-	}
-	basicAuth := middleware.BasicAuth(authValidator)
+	env := NewEnv()
 
-	db := NewMysqlDB()
+	// authValidator := func(username string, password string, c echo.Context) (bool, error) {
+	// 	if username == "admin" && password == "1234" {
+	// 		return true, nil
+	// 	}
+	// 	return false, nil
+	// }
+	// basicAuth := middleware.BasicAuth(authValidator)
+
+	db := NewMysqlDB(env)
 	controller := Controller{MysqlDB: db}
 
 	e := echo.New()
@@ -71,7 +98,7 @@ func main() {
 		}
 		str := string(htmlFile)
 		return c.HTML(http.StatusOK, str)
-	}, basicAuth)
+	})
 
 	e.GET("/todo", controller.GetTodo)
 	e.POST("/todo", controller.CreateTodo)
